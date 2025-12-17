@@ -54,6 +54,7 @@ docker run -p 8080:80 stock-dashboard
 - UI updates progressively without blocking initial render.
 
 This approach balances performance, API efficiency, and user experience.
+```
 
 ## Project Structure
 stock-dashboard/
