@@ -1,0 +1,31 @@
+body {
+    background-color: #f8f9fa;
+}
+
+
+.stock-card {
+    border-radius: 16px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    width: 100%;
+}
+
+
+.stock-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 28px rgba(0,0,0,0.12);
+}
+
+.sector-badge {
+    background: rgba(13, 110, 253, 0.1); /* bootstrap primary tint */
+    color: #0d6efd;
+    font-size: 0.7rem;
+    font-weight: 500;
+    padding: 4px 8px;
+    border-radius: 12px;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+.card-header-block {
+  min-height: 104px; /* tweak if needed */
+}
