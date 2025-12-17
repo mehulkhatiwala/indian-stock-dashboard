@@ -57,6 +57,7 @@ This approach balances performance, API efficiency, and user experience.
 ```
 
 ## Project Structure
+```
 stock-dashboard/
 │
 ├── index.html
@@ -69,3 +70,4 @@ stock-dashboard/
 ├── Dockerfile
 ├── nginx.conf
 └── README.md
+```
