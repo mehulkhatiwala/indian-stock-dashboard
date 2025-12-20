@@ -1,5 +1,5 @@
-const BASE_URL = "/api";
-
+// const BASE_URL = "/api";
+const BASE_URL = "https://nse-api-sand.vercel.app";
 function fetchBulkStocks() {
     return $.getJSON(`${BASE_URL}/stock/list`, {
         symbols: STOCKS.join(","),
