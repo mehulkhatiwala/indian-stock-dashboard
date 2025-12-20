@@ -26,7 +26,7 @@ A web-based dashboard displaying real-time prices of top Indian stocks using **H
 
 ---
 
-## API Used
+## Public API Used
 This project uses the open-source **Indian Stock Market API by 0xramm**.
 - Base URL: https://nse-api-sand.vercel.app
 - Public API (no authentication required)
@@ -34,27 +34,17 @@ This project uses the open-source **Indian Stock Market API by 0xramm**.
 - Simple REST endpoints
 - Client-side caching is implemented to handle temporary API unavailability
 
-## Run with Docker
-
-```bash
-docker build -t stock-dashboard .
-docker run -p 8080:80 stock-dashboard
-
-# Open: http://localhost:8080
-
-
 ## Data Fetching Strategy
 - Bulk stock data is fetched using `/stock/list` for fast initial rendering.
 - Day High and Day Low are not available in the bulk endpoint.
 - These values are lazily fetched per stock using `/stock`.
 
-### Performance Optimizations
+## Performance Optimizations
 - Per-stock API calls are throttled to avoid unnecessary requests.
 - Day range data is cached in `localStorage`.
 - UI updates progressively without blocking initial render.
 
 This approach balances performance, API efficiency, and user experience.
-```
 
 ## Project Structure
 ```
@@ -67,7 +57,26 @@ stock-dashboard/
 │   ├── config.js
 │   ├── api.js
 │   └── app.js
+├── docker-compose.dev.yml
 ├── Dockerfile
 ├── nginx.conf
 └── README.md
 ```
+
+## Project Execution or DEMO Steps
+
+### Development Mode
+For faster iteration, the project can be run using Docker with a volume mount:
+
+```bash
+docker-compose -f docker-compose.dev.yml up
+```
+
+### Run with Docker build (Recommended)
+
+```bash
+docker build -t stock-dashboard .
+docker run -p 8080:80 stock-dashboard
+```
+
+### Open: http://localhost:8080

@@ -1,0 +1,8 @@
+services:
+  web:
+    image: nginx:alpine
+    container_name: stock-dashboard-dev
+    ports:
+      - "8080:80"
+    volumes:
+      - .:/usr/share/nginx/html
