@@ -94,33 +94,77 @@ $(document).ready(() => {
     applyDarkMode(darkEnabled);
     // Toggle on click
     $(".darkModeToggle").on("click", function () {
-        $("body").toggleClass("dark-mode");
-
-        const isDark = $("body").hasClass("dark-mode");
-        localStorage.setItem("theme", isDark ? "dark" : "light");
-
-        updateDarkModeIcon(isDark);
+        const enabled = !document.body.classList.contains("dark-mode");
+        applyDarkMode(enabled);
     });
 
     setInterval(loadStocks, 30000);
+    $("#mobileSearchFocus").on("click", () => {
+        $("#searchInput").focus();
+    });
 });
 
 function loadStocks() {
     const c = $("#stockContainer").empty();
-    $("#loading").show();
+    $("#loading").css("display", "flex");
+    $("body").addClass("loading-active");
+
+    // Disable navbar controls while loading (buttons and links)
+    const $navBtns = $(".navbar .btn, .navbar .dropdown-toggle");
+    $navBtns.prop("disabled", true).addClass("disabled");
+    const $navLinks = $(".navbar .nav-link");
+    $navLinks.attr("aria-disabled", "true").addClass("disabled");
+
+    // Disable mobile bottom-bar controls while loading
+    const $mobileBtns = $(".mobile-bottom-bar .btn, .mobile-bottom-bar .dropdown-toggle");
+    $mobileBtns.prop("disabled", true).addClass("disabled");
+    const $mobileLinks = $(".mobile-bottom-bar .dropdown-item");
+    $mobileLinks.attr("aria-disabled", "true").addClass("disabled");
 
     fetchBulkStocks()
         .then((stocks) => {
             stocks.forEach((stock) => {
                 STOCK_DATA = stocks.filter(s => !s.error);
+
+                if (STOCK_DATA.length === 0) {
+                    $("#stockContainer").empty();
+                    showEmptyState("No stock data available at the moment.");
+                }
+
+                hideEmptyState();
                 applyFiltersAndSort();
             });
         })
-        .always(() => $("#loading").hide());
+        .fail((xhr) => {
+            $("#stockContainer").empty();
+            if (xhr.status === 404) {
+                showEmptyState("Unable to fetch stock data (404). Please try again later.", "warning");
+            } else if (xhr.status === 429) {
+                showEmptyState("Too many requests. Please wait a moment and try again.", "error");
+            } else if (xhr.status === 402) {
+                showEmptyState("Data service is temporarily paused. Please try again later.", "error");
+            } else if (xhr.status >= 500) {
+                showEmptyState("Server error while fetching stock data. Please try again shortly." , "error");
+            } else {
+                showEmptyState("Unable to fetch stock data. Please check your connection.", "warning");
+            }
+        })
+        .always(() => {
+            $("#loading").css("display", "none");
+            $("body").removeClass("loading-active");
+
+            // Re-enable navbar controls after loading
+            $navBtns.prop("disabled", false).removeClass("disabled");
+            $navLinks.removeAttr("aria-disabled").removeClass("disabled");
+
+            // Re-enable mobile bottom-bar controls
+            $mobileBtns.prop("disabled", false).removeClass("disabled");
+            $mobileLinks.removeAttr("aria-disabled").removeClass("disabled");
+        });
 }
 
 function renderStockList(list) {
-    const container = $("#stockContainer").empty();
+    $("#stockContainer").empty();
 
     list.forEach((stock) => {
         renderCard(stock);
@@ -133,13 +177,20 @@ function applyFiltersAndSort() {
 
     // Search
     if (currentSearch) {
-        list = list.filter(
-            (s) =>
-                s.company_name.toLowerCase().includes(currentSearch) ||
-                s.symbol.toLowerCase().includes(currentSearch) ||
-                (s.sector || "").toLowerCase().includes(currentSearch)
-        );
+        list = list.filter((s) => {
+            const hay = `${s.company_name || ""} ${s.symbol || ""} ${s.exchange || ""} ${s.sector || ""}`.toLowerCase();
+            return hay.includes(currentSearch);
+        });
     }
+
+    // If nothing matches, show empty state and return
+    if (!list.length) {
+        $("#stockContainer").empty();
+        showEmptyState("No stocks match your search.", "warning");
+        return;
+    }
+
+    hideEmptyState();
 
     // Sort
     if (currentSort.key) {
@@ -183,6 +234,11 @@ function renderCard(s) {
         cardClass = "negative";
     }
 
+    // Search term exists highlighting logic
+    const highlightedName = highlight(s.company_name || '', currentSearch);
+    const highlightedBadge = highlight(sectorText, currentSearch);
+    const highlightedMeta = highlight(`${s.symbol || ''} • ${s.exchange || ''}`, currentSearch);
+
     $("#stockContainer").append(`
         <div class="col-lg-3 col-md-6 col-sm-12 mb-4 d-flex">
             <div class="card stock-card h-100 ${cardClass}" data-symbol="${s.ticker}">
@@ -191,10 +247,10 @@ function renderCard(s) {
                     <!-- HEADER -->
                     <div class="card-header-block">
                         <div class="d-flex justify-content-between align-items-start">
-                            <h6 class="fw-bold mb-0 company-name">${s.company_name}</h6>
-                            <span class="badge sector-badge">${sectorText}</span>
+                            <h6 class="fw-bold mb-0 company-name">${highlightedName}</h6>
+                            <span class="badge sector-badge">${highlightedBadge}</span>
                         </div>
-                        <small class="text-muted">${s.symbol} • ${s.exchange}</small>
+                        <small class="text-muted">${highlightedMeta}</small>
                     </div>
 
                     <!-- PRICE -->
@@ -324,12 +380,16 @@ function refreshDataOnly() {
 }
 
 function applyDarkMode(enabled) {
-  document.body.classList.toggle("dark-mode", enabled);
-  localStorage.setItem(DARK_MODE_KEY, enabled ? "1" : "0");
+    document.body.classList.add("theme-animating");
+    setTimeout(() => document.body.classList.remove("theme-animating"), 420);
 
-  $(".darkModeToggle i")
-    .toggleClass("bi-moon", !enabled)
-    .toggleClass("bi-sun", enabled);
+    document.body.classList.toggle("dark-mode", enabled);
+    localStorage.setItem(DARK_MODE_KEY, enabled ? "1" : "0");
+
+    const $icon = $(".darkModeToggle i");
+    $icon.addClass("rotating");
+    updateDarkModeIcon(enabled);
+    setTimeout(() => $icon.removeClass("rotating"), 520);
 }
 
 function updateDarkModeIcon(isDark) {
@@ -340,6 +400,50 @@ function updateDarkModeIcon(isDark) {
         .addClass(iconClass);
 }
 
-$("#mobileSearchFocus").on("click", () => {
-    $("#searchInput").focus();
-});
+
+function showEmptyState(message, type = "info") {
+    const iconMap = {
+        info:  { icon: "bi-info-circle",    color: "text-primary" },
+        warning: { icon: "bi-exclamation-triangle", color: "text-warning" },
+        error: { icon: "bi-x-circle",       color: "text-danger" }
+    };
+
+    const { icon, color } = iconMap[type] || iconMap.info;
+
+    $("#emptyState").html(`
+        <div class="d-flex align-items-center justify-content-center gap-2">
+            <i class="bi ${icon} ${color} fs-5" aria-hidden="true"></i>
+            <span>${message}</span>
+        </div>
+    `).show();
+}
+
+function hideEmptyState() {
+    $("#emptyState").hide();
+}
+
+// --- Search highlighting helpers ---
+function escapeHtml(str) {
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+function escapeRegExp(s) {
+    return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function highlight(text, term) {
+    if (!text) return '';
+    const safe = escapeHtml(text);
+    if (!term) return safe;
+    try {
+        const re = new RegExp(escapeRegExp(term), 'gi');
+        return safe.replace(re, (m) => `<mark class="search-highlight">${m}</mark>`);
+    } catch (e) {
+        return safe;
+    }
+}

@@ -28,7 +28,7 @@ A web-based dashboard displaying real-time prices of top Indian stocks using **H
 
 ## Public API Used
 This project uses the open-source **Indian Stock Market API by 0xramm**.
-- Base URL: https://nse-api-sand.vercel.app
+- Base URL: https://military-jobye-haiqstudios-14f59639.koyeb.app/
 - Public API (no authentication required)
 - Designed specifically for Indian NSE stocks
 - Simple REST endpoints

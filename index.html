@@ -10,7 +10,7 @@
         <link rel="stylesheet" href="css/style.css" />
     </head>
     <body>
-        <nav class="navbar navbar-dark bg-dark">
+        <nav class="navbar navbar-light bg-light shadow-sm">
             <div class="container-fluid">
                 <span class="navbar-brand">📈 Indian Stock Dashboard</span>
                 <div class="d-flex align-items-center gap-2 ms-auto">
@@ -68,6 +68,11 @@
             <!-- SORT SUMMARY (MOBILE ONLY) -->
             <div class="small text-muted d-lg-none mb-2" id="activeSortLabel" style="display: none;"></div>
             
+            <!-- EMPTY STATE -->
+            <div id="emptyState" class="text-center text-muted my-4" style="display:none;">
+                <i class="bi bi-inbox fs-3 d-block mb-2"></i><span>No stock data available.</span>
+            </div>
+
             <!-- STOCK CARDS CONTAINER -->
             <div class="row" id="stockContainer"></div>
         </div>

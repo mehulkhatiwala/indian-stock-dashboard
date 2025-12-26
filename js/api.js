@@ -9,9 +9,6 @@ function fetchBulkStocks() {
         localStorage.setItem("bulk_cache", JSON.stringify(res.stocks));
         return res.stocks;
     })
-    .catch(() => {
-        return JSON.parse(localStorage.getItem("bulk_cache")) || [];
-    });
 }
 
 function fetchDayRange(symbol) {
